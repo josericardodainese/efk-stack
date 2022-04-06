@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.26.0 (40646f47)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: fluentd
+  name: fluentd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: fluentd
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.26.0 (40646f47)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/default: "true"
+        io.kompose.service: fluentd
+    spec:
+      containers:
+        - env:
+            - name: FLUENT_UID
+              value: "0"
+            - name: FLUENT_ELASTICSEARCH_HOST
+              value: "10.101.67.112"
+            - name: FLUENT_ELASTICSEARCH_PORT
+              value: "9200"
+          image: josericardodainese/fluentd_fluentd
+          name: fluentd
+          ports:
+            - containerPort: 24224
+            - containerPort: 24224
+              protocol: UDP
+            - containerPort: 9880
+          resources: {}
+          volumeMounts:
+          - name: fluentd-config
+            mountPath: /fluentd/etc
+          - name: varlog
+            mountPath: /var/log
+          - name: varlibdockercontainers
+            mountPath: /var/lib/docker/containers
+            readOnly: true
+      restartPolicy: Always
+      volumes:
+      - name: fluentd-config
+        configMap:
+          name: fluentd-config
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
+status: {}
+
